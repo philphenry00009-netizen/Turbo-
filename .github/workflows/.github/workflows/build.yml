@@ -3,7 +3,6 @@ name: Build Turbo Space APK
 on:
   workflow_dispatch:
   push:
-    paths: ["TurboSpace.zip"]
 
 jobs:
   build:
@@ -12,7 +11,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Unzip project
-        run: unzip -o TurboSpace.zip
+        run: |
+          unzip -o TurboSpace.zip
+          ls -la
 
       - uses: actions/setup-java@v4
         with:
@@ -26,10 +27,13 @@ jobs:
           gradle-version: 8.7
 
       - name: Build debug APK
-        working-directory: TurboSpace
-        run: gradle assembleDebug --no-daemon
+        run: |
+          DIR=$(dirname "$(find . -name settings.gradle.kts -not -path './.git/*' | head -n 1)")
+          echo "Project folder: $DIR"
+          cd "$DIR"
+          gradle assembleDebug --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
           name: TurboSpace-debug
-          path: TurboSpace/app/build/outputs/apk/debug/app-debug.apk
+          path: "**/outputs/apk/debug/*.apk"
